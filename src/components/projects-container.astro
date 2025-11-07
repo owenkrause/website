@@ -1,0 +1,52 @@
+---
+import Project from "@/components/project.astro";
+
+const projects = [
+	{
+		title: "DeepMaker",
+		description: "Market making vaults for passive liquidity farming",
+		github: {
+			owner: "owenkrause",
+			repo: "deepbook-amm"
+		}
+	},
+	{
+		title: "Notic3",
+		description: "Decentralized content creation platform",
+		github: {
+			owner: "kevinru2023",
+			repo: "notic3"
+		}
+	},
+	{
+		title: "NVMe Key Value Storage Engine",
+		description: "NVMe Key Value Storage Engine",
+		github: {
+			owner: "nvme-kv-osu-2025",
+			repo: "nvme-kv-engine"
+		}
+	},
+	{
+		title: "Online Arbitrage Bots",
+		description: "Real time inventory monitering software",
+		github: {
+			owner: "owenkrause",
+			repo: "sneaker-monitors"
+		}
+	},
+	{
+		title: "Minty",
+		description: "Gamifying dental hygiene",
+		github: {
+			owner: "owenkrause",
+			repo: "minty"
+		}
+	},
+];
+---
+
+<div class="carousel carousel-center rounded-box w-xs gap-4">
+  {projects.map(project => (
+    <Project {...project} />
+  ))}
+</div>

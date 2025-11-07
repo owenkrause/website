@@ -1,9 +1,19 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import Projects from "@/components/projects-container.astro";
+import Socials from "@/components/socials.astro";
+import Layout from "@/layouts/layout.astro";
 ---
 
 <Layout>
 	<div class="px-3 py-2">
+		<!-- header -->
 		<h1>Portfolio for owen (oh-one)</h1>
+
+		<!-- social media bar -->
+		<Socials />
+
+		<!-- projects carousel -->
+		<Projects />
+
 	</div>
 </Layout>
