@@ -1,0 +1,27 @@
+---
+import blockchain from '@/data/blockchain.json';
+
+const posts = blockchain.sort((a, b) => b.timestamp - a.timestamp);
+---
+
+<html>
+  <head>
+    <title>oh1 | blogchain directory</title>
+  </head>
+  <body>
+    <h1>blogchain directory</h1>
+    <ul>
+      {posts.map(post => (
+        <li>
+          <a href={`/blog/${post.hash}`}>
+            {post.title}
+          </a>
+          <br />
+          <small>
+            by {post.author} - {new Date(post.timestamp).toLocaleDateString()}
+          </small>
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>

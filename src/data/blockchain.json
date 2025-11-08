@@ -1,0 +1,10 @@
+[
+  {
+    "hash": "2b84073514503c1767fa890e5f3b1cfebb6b94aa91b5c6ce640c9dc3944d95c5",
+    "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "timestamp": 1762570310870,
+    "title": "introducing the blogchain",
+    "content": "this blog functions as a blockchain with no consensus network and only one participant (at the time of writing). not very decentralized lol but a cool idea nonetheless. each block is hashed with the previous block hash, timestamp, title, content, and author. blog pages are dynamically rendered from the blockchain.json file. if you'd like to add a block, email me an updated blockchain.json file and the sophisticated consensus algorithm (my will) will decide whether to add it or not. downloading the blockchain.json file also helps secures the network :)",
+    "author": "owen krause"
+  }
+]
