@@ -1,0 +1,366 @@
+---
+---
+
+<div class="w-full h-full flex flex-col bg-black text-white/90">
+	<div id="stats" class="absolute px-4 py-3 text-sm"></div>
+	<div id="particle-container" class="flex-1"></div>
+</div>
+
+<script>
+	import * as THREE from 'three';
+	import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+
+	const container = document.getElementById('particle-container');
+	const statsDiv = document.getElementById('stats') as HTMLDivElement;
+
+	if (!container) throw new Error('Container not found');
+
+	// Scene setup
+	let scene: THREE.Scene;
+	let camera: THREE.PerspectiveCamera;
+	let renderer: THREE.WebGLRenderer;
+	let FBO: any = {};
+
+	// Shader code
+	const simulationVertexShader = `
+		varying vec2 vUv;
+		void main() {
+			vUv = vec2(uv.x, uv.y);
+			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+		}
+	`;
+
+	const simulationFragmentShader = `
+		uniform sampler2D positions;
+		varying vec2 vUv;
+		void main() {
+			vec4 pos = texture2D(positions, vUv);
+			gl_FragColor = pos;
+		}
+	`;
+
+	const renderVertexShader = `
+		uniform sampler2D positions;
+		uniform vec2 nearFar;
+		uniform float pointSize;
+		varying float size;
+
+		void main() {
+			vec3 pos = texture2D(positions, position.xy).xyz;
+			gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+
+			float depth = 1.0 - smoothstep(nearFar.x, nearFar.y, gl_Position.z / gl_Position.w);
+			gl_PointSize = size = depth * pointSize;
+		}
+	`;
+
+	const renderFragmentShader = `
+		uniform vec2 nearFar;
+		varying float size;
+
+		void main() {
+			if(size < 8.0) discard;
+
+			float depth = gl_FragCoord.z / gl_FragCoord.w;
+			float color = 1.0 - smoothstep(nearFar.x, nearFar.y, depth);
+
+			// Increase contrast - higher power = more dramatic
+			color = pow(color, 2.5);
+			color = (color - 0.5) * 1.5 + 0.5;
+			color = clamp(color, 0.0, 1.0);
+
+			gl_FragColor = vec4(vec3(color), 1.0);
+		}
+	`;
+
+	// FBO initialization
+	function initFBO(width: number, height: number, renderer: THREE.WebGLRenderer, simulationMaterial: THREE.ShaderMaterial, renderMaterial: THREE.ShaderMaterial) {
+		const gl = renderer.getContext();
+
+		// Check extensions only for WebGL1
+		const isWebGL2 = gl instanceof WebGL2RenderingContext;
+
+		if (!isWebGL2) {
+			// WebGL1 needs extensions
+			const floatExt = gl.getExtension("OES_texture_float");
+			if (!floatExt) {
+				throw new Error("float textures not supported");
+			}
+			if (gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) === 0) {
+				throw new Error("vertex shader cannot read textures");
+			}
+		}
+
+		// FBO scene setup
+		const fboScene = new THREE.Scene();
+		const orthoCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1 / Math.pow(2, 53), 1);
+
+		// Create render target
+		const options = {
+			minFilter: THREE.NearestFilter,
+			magFilter: THREE.NearestFilter,
+			format: THREE.RGBAFormat,
+			type: THREE.FloatType
+		};
+		const rtt = new THREE.WebGLRenderTarget(width, height, options);
+
+		// Simulation quad
+		const geom = new THREE.BufferGeometry();
+		geom.setAttribute('position', new THREE.BufferAttribute(
+			new Float32Array([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, -1, 0, 1, 1, 0, -1, 1, 0]),
+			3
+		));
+		geom.setAttribute('uv', new THREE.BufferAttribute(
+			new Float32Array([0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0]),
+			2
+		));
+		fboScene.add(new THREE.Mesh(geom, simulationMaterial));
+
+		// Particles geometry
+		const l = width * height;
+		const vertices = new Float32Array(l * 3);
+		for (let i = 0; i < l; i++) {
+			const i3 = i * 3;
+			vertices[i3] = (i % width) / width;
+			vertices[i3 + 1] = Math.floor(i / width) / height;
+			vertices[i3 + 2] = 0;
+		}
+
+		const geometry = new THREE.BufferGeometry();
+		geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+		FBO.particles = new THREE.Points(geometry, renderMaterial);
+		FBO.renderer = renderer;
+		FBO.scene = fboScene;
+		FBO.orthoCamera = orthoCamera;
+		FBO.rtt = rtt;
+
+		// Update function
+		FBO.update = function() {
+			FBO.renderer.setRenderTarget(FBO.rtt);
+			FBO.renderer.render(FBO.scene, FBO.orthoCamera);
+			FBO.renderer.setRenderTarget(null);
+			FBO.particles.material.uniforms.positions.value = FBO.rtt.texture;
+		};
+	}
+
+	// Parse mesh to data texture
+	function parseMesh(geometry: THREE.BufferGeometry) {
+		const positions = geometry.attributes.position;
+		const vertices: THREE.Vector3[] = [];
+
+		for (let i = 0; i < positions.count; i++) {
+			vertices.push(new THREE.Vector3(
+				positions.getX(i),
+				positions.getY(i),
+				positions.getZ(i)
+			));
+		}
+
+		const total = vertices.length;
+		const size = Math.ceil(Math.sqrt(total)) + 1;
+		const data = new Float32Array(size * size * 4);
+
+		for (let i = 0; i < total; i++) {
+			data[i * 4] = vertices[i].x;
+			data[i * 4 + 1] = vertices[i].y;
+			data[i * 4 + 2] = vertices[i].z;
+			data[i * 4 + 3] = 1.0;
+		}
+
+		return { data, size };
+	}
+
+	// Initialize scene
+	function init() {
+		const w = container.clientWidth;
+		const h = container.clientHeight;
+
+		scene = new THREE.Scene();
+		scene.background = new THREE.Color(0x000000);
+
+		camera = new THREE.PerspectiveCamera(60, w / h, 1, 600);
+		camera.position.z = 150;
+
+		renderer = new THREE.WebGLRenderer({ antialias: true });
+		renderer.setSize(w, h);
+		renderer.setPixelRatio(window.devicePixelRatio);
+		container.appendChild(renderer.domElement);
+
+		// Start with empty/placeholder
+		const size = 64;
+		const data = new Float32Array(size * size * 4);
+		for (let i = 0; i < size * size; i++) {
+			const i4 = i * 4;
+			data[i4] = (Math.random() - 0.5) * 50;
+			data[i4 + 1] = (Math.random() - 0.5) * 50;
+			data[i4 + 2] = (Math.random() - 0.5) * 50;
+			data[i4 + 3] = 1.0;
+		}
+
+		const positions = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.FloatType);
+		positions.needsUpdate = true;
+
+		const simulationShader = new THREE.ShaderMaterial({
+			uniforms: {
+				positions: { value: positions }
+			},
+			vertexShader: simulationVertexShader,
+			fragmentShader: simulationFragmentShader
+		});
+
+		const renderShader = new THREE.ShaderMaterial({
+			uniforms: {
+				positions: { value: null },
+				pointSize: { value: 10.0 },
+				nearFar: { value: new THREE.Vector2(50, 300) }
+			},
+			vertexShader: renderVertexShader,
+			fragmentShader: renderFragmentShader,
+			transparent: true
+		});
+
+		try {
+			initFBO(size, size, renderer, simulationShader, renderShader);
+			scene.add(FBO.particles);
+		} catch (error) {
+			console.error("Failed to initialize FBO:", error);
+			const errorDiv = document.createElement('div');
+			errorDiv.className = 'p-4 bg-red-100 text-red-800 text-center';
+			errorDiv.textContent = 'WebGL feature not supported on this device. FBO particles require float texture support.';
+			container.prepend(errorDiv);
+		}
+
+		window.addEventListener('resize', onResize);
+		animate();
+
+		// Load the OBJ file
+		loadOBJ('/base.obj');
+	}
+
+	// Load OBJ file from URL
+	function loadOBJ(url: string) {
+		const loader = new OBJLoader();
+		loader.load(
+			url,
+			(object) => {
+				let mesh: THREE.Mesh | null = null;
+				object.traverse((child) => {
+					if (child instanceof THREE.Mesh && !mesh) {
+						mesh = child;
+					}
+				});
+
+				if (mesh && mesh.geometry) {
+					const vertexCount = mesh.geometry.attributes.position.count;
+					console.log('OBJ vertex count:', vertexCount);
+
+					const { data, size } = parseMesh(mesh.geometry);
+					console.log('Texture size:', size, 'x', size, '=', size * size, 'particles');
+
+					// Center and scale
+					const boundingBox = new THREE.Box3().setFromBufferAttribute(
+						mesh.geometry.attributes.position
+					);
+					const center = boundingBox.getCenter(new THREE.Vector3());
+					const size3d = boundingBox.getSize(new THREE.Vector3());
+					const maxDim = Math.max(size3d.x, size3d.y, size3d.z);
+					const scale = 80 / maxDim;
+
+					for (let i = 0; i < data.length; i += 4) {
+						data[i] = (data[i] - center.x) * scale;
+						data[i + 1] = (data[i + 1] - center.y) * scale;
+						data[i + 2] = (data[i + 2] - center.z) * scale;
+					}
+
+					const positions = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.FloatType);
+					positions.needsUpdate = true;
+
+					const simulationShader = new THREE.ShaderMaterial({
+						uniforms: {
+							positions: { value: positions }
+						},
+						vertexShader: simulationVertexShader,
+						fragmentShader: simulationFragmentShader
+					});
+
+					const renderShader = new THREE.ShaderMaterial({
+						uniforms: {
+							positions: { value: null },
+							pointSize: { value: 10.0 },
+							nearFar: { value: new THREE.Vector2(50, 300) }
+						},
+						vertexShader: renderVertexShader,
+						fragmentShader: renderFragmentShader,
+						transparent: true
+					});
+
+					try {
+						scene.remove(FBO.particles);
+						initFBO(size, size, renderer, simulationShader, renderShader);
+						scene.add(FBO.particles);
+					} catch (error) {
+						console.error("Failed to load OBJ:", error);
+						alert("Failed to load the OBJ file. Your device may not support the required WebGL features.");
+					}
+				}
+			},
+			undefined,
+			(error) => {
+				console.error('Error loading OBJ:', error);
+				alert('Failed to load base.obj. Make sure the file exists in /public/base.obj');
+			}
+		);
+	}
+
+	// Mouse rotation
+	let mouseX = 0;
+	let mouseY = 0;
+
+	window.addEventListener('mousemove', (event) => {
+		mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+		mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+	});
+
+	// FPS tracking
+	let frameCount = 0;
+	let lastTime = performance.now();
+	let fps = 0;
+
+	// Animation loop
+	function animate() {
+		requestAnimationFrame(animate);
+
+		// Calculate FPS
+		frameCount++;
+		const currentTime = performance.now();
+		if (currentTime >= lastTime + 100) {
+			fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+			frameCount = 0;
+			lastTime = currentTime;
+
+			// Update stats display
+			const particleCount = FBO.particles ? FBO.particles.geometry.attributes.position.count : 0;
+			statsDiv.textContent = `FPS: ${fps} | Particles: ${particleCount.toLocaleString()}`;
+		}
+
+		if (FBO.particles) {
+			FBO.particles.rotation.y += (mouseX * Math.PI * 0.25 - FBO.particles.rotation.y) * 0.05;
+			FBO.particles.rotation.x += (mouseY * Math.PI * 0.25 - FBO.particles.rotation.x) * 0.05;
+		}
+
+		FBO.update();
+		renderer.render(scene, camera);
+	}
+
+	// Handle resize
+	function onResize() {
+		const w = container.clientWidth;
+		const h = container.clientHeight;
+		renderer.setSize(w, h);
+		camera.aspect = w / h;
+		camera.updateProjectionMatrix();
+	}
+
+	init();
+</script>

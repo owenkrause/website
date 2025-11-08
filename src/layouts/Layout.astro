@@ -11,14 +11,9 @@ import "@/styles/global.css";
 		<meta name="generator" content={Astro.generator} />
 		<title>oh1</title>
 	</head>
-	<body class="flex flex-col w-full h-full m-0 px-3 py-2 font-mono text-black/90">
+	<body class="flex flex-col w-full h-full m-0 font-mono text-black/90 overflow-hidden">
 		<main class="flex-1">
 			<slot />
 		</main>
-		<footer>
-			<span class="block text-xs">owen krause</span>
-			<span class="block text-xs">owenjkrause@gmail.com</span>
-			<span class="block text-xs">built with astros, tailwindcss, and daisyui</span>
-		</footer>
 	</body>
 </html>
