@@ -1,19 +1,29 @@
 ---
 import "@/styles/global.css";
+
+interface Props {
+  title?: string;
+  bodyClass?: string;
+}
+
+const {
+  title = "oh1",
+  bodyClass = "flex flex-col w-full h-full m-0 font-mono text-black/90 overflow-hidden",
+} = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en" class="bg-white h-full">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="" />
-		<meta name="generator" content={Astro.generator} />
-		<title>oh1</title>
-	</head>
-	<body class="flex flex-col w-full h-full m-0 font-mono text-black/90 overflow-hidden">
-		<main class="flex-1">
-			<slot />
-		</main>
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class={bodyClass}>
+    <main class="flex-1">
+      <slot />
+    </main>
+  </body>
 </html>

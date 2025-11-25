@@ -1,5 +1,6 @@
 ---
 import type { GetStaticPaths } from "astro";
+import Layout from "@/layouts/layout.astro";
 import blockchain from "@/data/blockchain.json";
 
 export const getStaticPaths = (() => {
@@ -12,25 +13,25 @@ export const getStaticPaths = (() => {
 const { block } = Astro.props;
 ---
 
-<html>
-  <head>
-    <title>oh1 | {block.title}</title>
-  </head>
-  <body>
-    <article>
-      <h1>{block.title}</h1>
-      <time datetime={new Date(block.timestamp).toISOString()}>
-        {new Date(block.timestamp).toLocaleString()}
-      </time>
-      <div>{block.content}</div>
-      <div>- {block.author}</div>
-      <footer>
-        <p>Hash: <code>{block.hash}</code></p>
-        <p>Previous: <code>{block.prevHash}</code></p>
-        {block.prevHash !== '0'.repeat(64) && (
-          <a href={`/blog/${block.prevHash}`}>← Previous Post</a>
-        )}
-      </footer>
-    </article>
-  </body>
-</html>
+<Layout
+  title={`oh1 | ${block.title}`}
+  bodyClass="flex flex-col w-full h-full m-0 font-mono text-black/90 overflow-auto"
+>
+  <article class="p-8 max-w-3xl mx-auto">
+    <h1 class="text-3xl font-bold mb-2">{block.title}</h1>
+    <time datetime={new Date(block.timestamp).toISOString()} class="text-gray-600 text-sm block mb-6">
+      {new Date(block.timestamp).toLocaleString()}
+    </time>
+    <div class="prose prose-sm mb-6">{block.content}</div>
+    <div class="text-gray-700 mb-8">- {block.author}</div>
+    <footer class="border-t border-gray-200 pt-6 space-y-2 text-sm text-gray-600">
+      <p>Hash: <code class="bg-gray-100 px-2 py-1 rounded">{block.hash}</code></p>
+      <p>Previous: <code class="bg-gray-100 px-2 py-1 rounded">{block.prevHash}</code></p>
+      {block.prevHash !== '0'.repeat(64) && (
+        <a href={`/blog/${block.prevHash}`} class="text-blue-600 underline hover:text-blue-800 block mt-4">
+          ← Previous Post
+        </a>
+      )}
+    </footer>
+  </article>
+</Layout>
