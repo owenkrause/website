@@ -3,27 +3,27 @@ import "@/styles/global.css";
 
 interface Props {
   title?: string;
-  bodyClass?: string;
 }
 
-const {
-  title = "oh1",
-  bodyClass = "flex flex-col w-full h-full m-0 font-mono text-black/90 overflow-hidden",
-} = Astro.props;
+const { title = "owen krause" } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en" class="bg-white h-full">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Commit+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
-  <body class={bodyClass}>
-    <main class="flex-1">
-      <slot />
-    </main>
+  <body
+    class="bg-white text-gray-800 text-sm min-h-screen font-['Commit_Mono',monospace]"
+  >
+    <slot />
   </body>
 </html>
