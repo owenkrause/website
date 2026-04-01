@@ -4,8 +4,8 @@ import { timeline } from "@/data/timeline";
 ---
 
 <Layout title="owen krause">
-  <div class="w-full max-w-xl mx-auto px-6 pt-15 pb-30">
-    <h1 class="text-2xl font-bold text-gray-900 mb-1">□ owen krause</h1>
+  <div class="w-full max-w-xl mx-auto px-6 py-15">
+    <h1 class="text-xl font-semibold text-gray-600 mb-1">owen krause</h1>
     <p class="text-sm text-gray-400 mb-3.5">
       oh1 · cs + math @ oregon state university
     </p>
@@ -15,18 +15,16 @@ import { timeline } from "@/data/timeline";
         href="https://github.com/owenkrause"
         target="_blank"
         class="text-[#0000EE] underline">github</a
-      ><span class="text-gray-400 mx-1.5">·</span><a
+      ><span class="text-gray-600 mx-1.5">·</span><a
         href="/resume.pdf"
         target="_blank"
         class="text-[#0000EE] underline">resume</a
-      ><span class="text-gray-400 mx-1.5">·</span><a
+      ><span class="text-gray-600 mx-1.5">·</span><a
         href="https://www.linkedin.com/in/owen-krause/"
         target="_blank"
         class="text-[#0000EE] underline">linkedin</a
       >
     </div>
-
-    <div class="h-[1.5px] bg-gray-900 w-7 mb-6"></div>
 
     <p class="text-sm text-gray-400 mb-3">things i've done ~</p>
 
@@ -43,9 +41,7 @@ import { timeline } from "@/data/timeline";
             ]}
           >
             <div>
-              <strong class="font-bold text-gray-900 transition-colors duration-150 group-hover:text-black">
-                {entry.title}
-              </strong>{" "}
+              <strong class="font-semibold text-gray-600">{entry.title}</strong>{" "}
               <span class="text-gray-500">— {entry.description}</span>
             </div>
             {entry.detail ? (
@@ -62,7 +58,7 @@ import { timeline } from "@/data/timeline";
           </div>
           {entry.detail && (
             <div class="max-h-0 overflow-hidden transition-all duration-250 ease-in-out group-[.open]/entry:max-h-50">
-              <div class="text-xs text-gray-500 leading-relaxed pt-0.5 pb-3">
+              <div class="text-xs text-gray-600 leading-relaxed pt-0.5 pb-3">
                 {entry.detail.text}
                 {entry.detail.links && entry.detail.links.length > 0 && (
                   <div class="mt-2 flex gap-3">
@@ -85,19 +81,47 @@ import { timeline } from "@/data/timeline";
         </div>
       ))
     }
+
+    <div class="mt-8 border border-gray-200 p-5">
+      <h2
+        class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3"
+      >
+        Motivations
+      </h2>
+      <p class="text-xs text-gray-600 leading-relaxed">
+        i like maxxing out everything. sneaker reselling was never about the
+        money — it was about how many shoes i could move. beaverhacks was about
+        how big i could grow it. the question is always "how far can i push
+        this?"
+        <br /><br />
+        i'm stubborn about following my own path. i skipped AP classes to scale a
+        reselling business. i refused to grind leetcode. result: i didn't get into
+        a top school, i got rejected from interviews. but i'd rather fail on my own
+        terms than succeed by following a script.
+        <br /><br />
+        finally, the process has to be real. shortcuts don't count. if i can't say
+        i actually did the work, the result doesn't mean anything to me.
+      </p>
+    </div>
   </div>
+
+  <footer
+    class="bg-gray-50 border-t border-gray-200 py-4 text-center text-xs text-gray-400"
+  >
+    owen krause · 2026
+  </footer>
+
+  <script>
+    function toggle(el: Element) {
+      const wasOpen = el.classList.contains("open");
+      document
+        .querySelectorAll(".entry.open")
+        .forEach((e) => e.classList.remove("open"));
+      if (!wasOpen) el.classList.add("open");
+    }
+
+    document.querySelectorAll(".entry[data-has-detail]").forEach((entry) => {
+      entry.addEventListener("click", () => toggle(entry));
+    });
+  </script>
 </Layout>
-
-<script>
-  function toggle(el: Element) {
-    const wasOpen = el.classList.contains("open");
-    document
-      .querySelectorAll(".entry.open")
-      .forEach((e) => e.classList.remove("open"));
-    if (!wasOpen) el.classList.add("open");
-  }
-
-  document.querySelectorAll(".entry[data-has-detail]").forEach((entry) => {
-    entry.addEventListener("click", () => toggle(entry));
-  });
-</script>
