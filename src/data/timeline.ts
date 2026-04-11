@@ -10,11 +10,29 @@ export interface TimelineEntry {
 
 export const timeline: TimelineEntry[] = [
   {
-    title: "Went to SF",
-    description: "drove to sf with no plans",
-    date: "05/2026",
+    title: "Suixploit",
+    description: "found multiple bugs in large defi protocols",
+    date: "04/2026",
     detail: {
-      text: "Ended up winning a hackathon, went viral on reddit, and crashed a YC founder night.",
+      text: "Built a multi-agent pipeline for autonomous smart contract vulnerability discovery. Spent $1,187.47 on api credits instead of my rent.",
+      links: [
+        {
+          label: "writeup",
+          url: "https://x.com/oh1hn/status/2042635956994683199",
+        },
+        {
+          label: "github",
+          url: "https://github.com/owenkrause/suixploit",
+        },
+      ],
+    },
+  },
+  {
+    title: "AWS Hackathon",
+    description: "ghost track winner",
+    date: "03/2026",
+    detail: {
+      text: "Drove to SF with no plans in mind, ended up winning another hackathon. Also crashed a YC founder night and blew up on reddit.",
       links: [
         {
           label: "hackathon project",
@@ -23,6 +41,10 @@ export const timeline: TimelineEntry[] = [
         {
           label: "reddit clout",
           url: "https://www.reddit.com/r/csMajors/comments/1s3usoh/just_caught_up_with_a_friend_who_got_hired_at/",
+        },
+        {
+          label: "garry tan reposted me",
+          url: "https://x.com/garrytan/status/2042667202055442512?s=20",
         },
       ],
     },
