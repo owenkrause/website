@@ -92,10 +92,15 @@ export const timeline: TimelineEntry[] = [
     date: "05/2025",
   },
   {
+    title: "Top 2000 speed typist",
+    description: "192 wpm, 15 second test",
+    date: "05/2025",
+  },
+  {
     title: "BeaverHacks",
     description:
       "went into debt scaling beaverhacks from 50 to 300 participants",
-    date: "04/2024",
+    date: "04/2025",
     detail: {
       text: "Led the organizing team for Oregon State's hackathon. Handled sponsorships, logistics, and tech infra. 6x growth in one year. paid $2,000 out of pocket (reimbursed months later).",
       links: [{ label: "writeup", url: "#" }],
