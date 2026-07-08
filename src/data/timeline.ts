@@ -10,6 +10,16 @@ export interface TimelineEntry {
 
 export const timeline: TimelineEntry[] = [
   {
+    title: "Zed Campus Ambassador",
+    description: "representing zed on campus",
+    date: "07/2026",
+  },
+  {
+    title: "Entrepreneurs First",
+    description: "joined ef's summer 2026 cohort",
+    date: "06/2026",
+  },
+  {
     title: "Suixploit",
     description: "found multiple bugs in large defi protocols",
     date: "04/2026",
@@ -93,13 +103,13 @@ export const timeline: TimelineEntry[] = [
   },
   {
     title: "Top 2000 speed typist",
-    description: "192 wpm, 15 second test",
+    description: "193 wpm, 15 second test",
     date: "05/2025",
   },
   {
     title: "BeaverHacks",
     description:
-      "went into debt scaling beaverhacks from 50 to 300 participants",
+      "went into debt scaling beaverhacks from 50 to 350+ participants",
     date: "04/2025",
     detail: {
       text: "Led the organizing team for Oregon State's hackathon. Handled sponsorships, logistics, and tech infra. 6x growth in one year. paid $2,000 out of pocket (reimbursed months later).",
@@ -142,7 +152,7 @@ export const timeline: TimelineEntry[] = [
   },
   {
     title: "Sneaker Reselling",
-    description: "$500,000 in revenue in highschool",
+    description: "$500,000+ in revenue in highschool",
     date: "08/2023",
     detail: {
       text: "Arbitraged sneakers through online retailers and marketplaces. Scaled by developing automation software which I sold to over 250 users. Also ran a mentorship group and hit $5k MRR. This is how I got into coding.",
